@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 advent_of_code::solution!(2);
 
 fn parse_line(line: &str) -> Vec<(u64, u64)> {
@@ -14,7 +12,7 @@ fn parse_line(line: &str) -> Vec<(u64, u64)> {
 }
 
 fn get_divider(length: u32) -> u64 {
-    if length % 2 != 0 || length < 2 {
+    if !length.is_multiple_of(2) || length < 2 {
         return 0
     };
     let s = format!("1{}1", "0".repeat(length as usize/2-1));
@@ -22,22 +20,17 @@ fn get_divider(length: u32) -> u64 {
 }
 
 fn check_repeating(int: u64) -> bool {
-    let DUMB_PRIME_MAP = HashMap::from([
-        (1, vec![]),
-        (2, vec![11]),
-        (3, vec![111]),
-        (4, vec![101, 1111]),
-        (5, vec![11111]),
-        (6, vec![10101, 1001, 111111]),
-        (7, vec![1111111]),
-        (8, vec![1010101, 10001]),
-        (9, vec![1001001, 111111111]),
-        (10, vec![101010101, 100001, 1111111111])
-    ]);
     let len = int.ilog10()+1;
-    for i in DUMB_PRIME_MAP.get(&len).unwrap_or_else(|| panic!("Int too large to check {}", int)) {
-        if int % *i == 0 {
-            return true
+    for chunk_len in 1..=len/2 {
+        if len.is_multiple_of(chunk_len) {                       //123123123 => int
+            let chunk = int / 10u64.pow(len - chunk_len);  // / 10^6 = 123 => chunk
+            let mut check = 0;
+            for i in (0..=(len-chunk_len)).step_by(chunk_len as usize) {
+                check += chunk * 10u64.pow(i);
+            }
+            if check == int {
+                return true;
+            }
         }
     }
     false
