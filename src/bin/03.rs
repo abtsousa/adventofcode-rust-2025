@@ -1,36 +1,51 @@
-use std::cmp::max;
 use std::collections::VecDeque;
 
 advent_of_code::solution!(3);
 
 fn parse_line(line: &str) -> VecDeque<u32> {
+    println!("Parsing {line}");
     line.chars().map(|x| x.to_digit(10).expect("Invalid char! {x}")).collect()
+}
+
+fn get_joltage<const N: usize>(mut input: VecDeque<u32>) -> u64 {
+    let mut joltage: [u64; N] = [0; N];
+    let len = input.len();
+    for i in (1..=len).rev() {
+        let candidate = input.pop_front().expect("Tried to pop empty vector!") as u64;
+        for j in N.saturating_sub(i)..N {
+            if candidate > joltage[j] {
+                println!("Found candidate: {candidate}");
+                joltage[j] = candidate;
+                println!("New joltage: {:?}", joltage);
+                for k in j+1..N {
+                    joltage[k] = 0;
+                }
+                break
+            }
+        }
+    };
+    let mut result = 0;
+    for digit in joltage {
+        result = result * 10 + digit
+    }
+    println!("Result: {result}");
+    result
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
     let mut sum = 0;
     for line in input.lines() {
-        let mut a = 0;
-        let mut b = 0;
-        let mut vec = parse_line(line);
-        while !vec.is_empty() {
-            let candidate = vec.pop_front().expect("Tried to pop empty vector!") as u64;
-            if candidate > a && !vec.is_empty() {
-                a = candidate;
-                b = 0;
-                continue
-            } else if candidate > b {
-                b = candidate;
-            }
-        }
-        sum += 10*a+b;
-        println!("line: {line} a: {a} b: {b} sum: {sum}")
+        sum += get_joltage::<2>(parse_line(line))
     }
     Some(sum)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let mut sum = 0;
+    for line in input.lines() {
+        sum += get_joltage::<12>(parse_line(line))
+    }
+    Some(sum)
 }
 
 #[cfg(test)]
